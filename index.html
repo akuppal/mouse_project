@@ -68,28 +68,28 @@
     <span id="rangeLabel"></span>
   </div>
 
-  <div style="display: flex; justify-content: center;"><svg id="tempChart" width="960" height="500" style="overflow: visible;"></svg></div>
-  <div class="legend">
+  <div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
+  <svg id="tempChart" width="960" height="500" style="overflow: visible;"></svg>
+  </div>
+<div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
+  <svg id="activityChart" width="960" height="500" style="overflow: visible; margin-left: 60px;"></svg>
+  <div class="legend" style="flex-direction: column; margin: 0;">
     <div class="legend-item"><div class="legend-color" style="background-color: blue; opacity: 0.5;"></div>Male</div>
     <div class="legend-item"><div class="legend-color" style="background-color: red; opacity: 0.5;"></div>Female</div>
   </div>
-
-  <div style="display: flex; justify-content: center;"><svg id="activityChart" width="960" height="500" style="overflow: visible;"></svg></div>
-  <div class="legend">
-    <div class="legend-item"><div class="legend-color" style="background-color: blue; opacity: 0.5;"></div>Male</div>
-    <div class="legend-item"><div class="legend-color" style="background-color: red; opacity: 0.5;"></div>Female</div>
-  </div>
+</div>
 
   <div id="tooltip" class="tooltip"></div>
 
   <script>
 // JavaScript START
 
-const estrusBlocks = [{start: 48, end: 72}];
+
 const margin = {top: 40, right: 20, bottom: 40, left: 60};
 const chartWidth = 960 - margin.left - margin.right;
 const chartHeight = 500 - margin.top - margin.bottom;
 let fullData = {};
+let estrusBlocks = [];
 let timeStart = 0;
 let timeEnd = 833;
 const tooltip = d3.select("#tooltip");
@@ -103,6 +103,10 @@ Promise.all([
   const totalHours = maleTempRaw.length - 1;
   timeEnd = totalHours;
 
+  estrusBlocks = Array.from({ length: Math.ceil(timeEnd / 96) }, (_, i) => {
+    const start = i * 96;
+    return { start, end: start + 15 };
+  });
   d3.select("#timeStart").attr("min", 0).attr("max", totalHours).attr("value", 0);
   d3.select("#timeEnd").attr("min", 0).attr("max", totalHours).attr("value", totalHours);
 
