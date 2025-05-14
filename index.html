@@ -117,39 +117,57 @@ const chartHeight = 500 - margin.top - margin.bottom;
 let fullData = {};
 let estrusBlocks = [];
 let timeStart = 0;
-let timeEnd = 833;
+let timeEnd = 336;
 const tooltip = d3.select("#tooltip");
 
 Promise.all([
-  d3.csv("Male_Temp.csv", row => ({avg: d3.mean(Object.values(row), v => +v)})),
-  d3.csv("Fem_Temp.csv", row => ({avg: d3.mean(Object.values(row), v => +v)})),
-  d3.csv("Male_Act.csv", row => ({avg: d3.mean(Object.values(row), v => +v)})),
-  d3.csv("Fem_Act.csv", row => ({avg: d3.mean(Object.values(row), v => +v)}))
+  d3.csv("Male_Temp.csv", row => Object.values(row).map(v => +v)),
+  d3.csv("Fem_Temp.csv", row => Object.values(row).map(v => +v)),
+  d3.csv("Male_Act.csv", row => Object.values(row).map(v => +v)),
+  d3.csv("Fem_Act.csv", row => Object.values(row).map(v => +v))
 ]).then(([maleTempRaw, femaleTempRaw, maleActRaw, femaleActRaw]) => {
-  const totalHours = maleTempRaw.length - 1;
-  timeEnd = totalHours;
 
-  estrusBlocks = Array.from({ length: Math.ceil(timeEnd / 96) }, (_, i) => {
-    const start = i * 96;
-    return { start, end: start + 15 };
-  });
-  d3.select("#timeStart").attr("min", 0).attr("max", totalHours).attr("value", 0);
-  d3.select("#timeEnd").attr("min", 0).attr("max", totalHours).attr("value", totalHours);
-
-  d3.select("#dayStart").attr("min", 0).attr("max", Math.floor(totalHours / 24)).property("value", 0);
-  d3.select("#dayEnd").attr("min", 0).attr("max", Math.floor(totalHours / 24)).property("value", Math.floor(totalHours / 24));
-
-  fullData = {
-    maleTemp: maleTempRaw.map((d, i) => ({hour: i, avg: d.avg})),
-    femaleTemp: femaleTempRaw.map((d, i) => ({hour: i, avg: d.avg})),
-    maleAct: maleActRaw.map((d, i) => ({hour: i, avg: d.avg})),
-    femaleAct: femaleActRaw.map((d, i) => ({hour: i, avg: d.avg}))
+  const groupbyHour = (data) => {
+    const result = [];
+    for (let i = 0; i < data.length; i += 60) {
+      const block = data.slice(i, i + 60);
+      result.push({
+        hour: Math.floor(i / 60),
+        avg: d3.mean(block.flat())
+      });
+    }
+    return result;
   };
 
-  updateCharts();
+  fullData = {
+    maleTemp: groupbyHour(maleTempRaw),
+    femaleTemp: groupbyHour(femaleTempRaw),
+    maleAct: groupbyHour(maleActRaw),
+    femaleAct: groupbyHour(femaleActRaw)
+  };
+
+  const estrusStart = 48;
+
+  estrusBlocks = Array.from({length: Math.ceil((timeEnd * 1 - estrusStart) / 96) }, (_, i) => {
+    const start = estrusStart + i * 96;
+    return { start, end: start + 15 };
+  });
+
+  lightBlocks = Array.from({length: Math.ceil((timeEnd * 1) / 24) }, (_, i) => {
+    const start = i * 24;
+    return { start, end: start + 12 };
+  });
+
+  d3.select("#timeStart").attr("min", 0).attr("max", timeEnd).attr("value", 0);
+  d3.select("#timeEnd").attr("min", 0).attr("max", timeEnd).attr("value", timeEnd);
+
+  d3.select("#dayStart").attr("min", 0).attr("max", Math.floor(timeEnd / 24)).property("value", 0);
+  d3.select("#dayEnd").attr("min", 0).attr("max", Math.floor(timeEnd / 24)).property("value", Math.floor(timeEnd / 24));
 
   d3.select("#toggle-male").on("change", updateVisibility);
   d3.select("#toggle-female").on("change", updateVisibility);
+
+  updateCharts();
 
   d3.select("#timeStart").on("input", function() {
     timeStart = Math.min(+this.value, timeEnd - 1);
@@ -224,16 +242,16 @@ function drawChart({svgId, title, yLabel, maleData, femaleData, yDomain}) {
   const x = d3.scaleLinear().domain([timeStart, timeEnd]).range([0, chartWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([chartHeight, 0]);
 
-  for (let i = timeStart; i < timeEnd; i += 3) {
-    const isLight = (i % 24) < 12;
+  lightBlocks.forEach(d => {
+    if (d.end < timeStart || d.start > timeEnd) return;
     svg.append("rect")
-      .attr("x", x(i))
+      .attr("x", x(Math.max(d.start, timeStart)))
+      .attr("width", x(Math.min(d.end, timeEnd)) - x(Math.max(d.start, timeStart)))
       .attr("y", 0)
-      .attr("width", x(Math.min(i + 3, timeEnd)) - x(i))
       .attr("height", chartHeight)
-      .attr("fill", isLight ? "white" : "#888")
-      .attr("opacity", 0.15);
-  }
+      .attr("fill", "#888")
+      .attr("opacity", 0.25);
+  });
 
   estrusBlocks.forEach(d => {
     if (d.end < timeStart || d.start > timeEnd) return;
@@ -242,7 +260,7 @@ function drawChart({svgId, title, yLabel, maleData, femaleData, yDomain}) {
       .attr("width", x(Math.min(d.end, timeEnd)) - x(Math.max(d.start, timeStart)))
       .attr("y", 0)
       .attr("height", chartHeight)
-      .attr("fill", "rgba(100,100,100,0.3)");
+      .attr("fill", "rgba(200,100,100,0.3)");
   });
 
   const line = d3.line().x(d => x(d.hour)).y(d => y(d.avg));
@@ -274,8 +292,11 @@ function drawChart({svgId, title, yLabel, maleData, femaleData, yDomain}) {
   addLine(femaleData, "red", "female-line");
 
   svg.append("g")
-    .attr("transform", `translate(0,${chartHeight})`)
-    .call(d3.axisBottom(x).ticks(10).tickFormat(d => `Day ${Math.floor(d / 24)}`));
+  .attr("transform", `translate(0,${chartHeight})`)
+  .call(d3.axisBottom(x)
+    .ticks(Math.floor((timeEnd - timeStart) / 24))
+    .tickValues(d3.range(timeStart, timeEnd, 24))
+    .tickFormat(d => `Day ${Math.floor(d / 24)}`));
 
   svg.append("g").call(d3.axisLeft(y));
 
