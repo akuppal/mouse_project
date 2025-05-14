@@ -42,7 +42,8 @@
 </head>
 <body>
 
-  <h1>Mouse Temperature and Activity Visualization</h1>
+  <h1 style="margin-bottom: 0;"> It's Getting Mice and Toasty In Here: An Exploration into Mouse Body Temperatures and Activity </h1>
+  <p style="display:flex; justify-content: center; margin-top: 0;">By: Akshay, Dylan, Ethan, and Sahana </p>
   <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; font-size: 14px; color: #333;">
   <div style="display: flex; align-items: center; gap: 5px;">
     <div style="width: 15px; height: 15px; background-color: #888; opacity: 0.15; border: 1px solid #ccc;"></div>
@@ -70,16 +71,41 @@
 
   <div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
   <svg id="tempChart" width="960" height="500" style="overflow: visible;"></svg>
+  <div class="legend" style="display: flex; flex-direction: column; margin: 0;">
+    <div class="legend-item"><div class="legend-color" style="background-color: blue; opacity: 0.5;"></div>Male</div>
+    <div class="legend-item"><div class="legend-color" style="background-color: red; opacity: 0.5;"></div>Female</div>
+  </div>
+
   </div>
 <div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
   <svg id="activityChart" width="960" height="500" style="overflow: visible; margin-left: 60px;"></svg>
-  <div class="legend" style="flex-direction: column; margin: 0;">
+  <div class="legend" style="display: flex; flex-direction: column; margin: 0;">
     <div class="legend-item"><div class="legend-color" style="background-color: blue; opacity: 0.5;"></div>Male</div>
     <div class="legend-item"><div class="legend-color" style="background-color: red; opacity: 0.5;"></div>Female</div>
   </div>
 </div>
 
   <div id="tooltip" class="tooltip"></div>
+
+<p><br>
+<h2 style="margin-bottom:0;">ABOUT DATA</h2>
+As seen above, on average, female mice body temperatures tend to be higher than male mice. This can be attributed to estrus, a period of time during the a female mouse's reproductive cycle where the female mouse is receptive to mating and is when ovulation occurs.
+It repeats every four days, as recorded above in the graphs.
+These are important findings because mice are biologically and genetically similar to humans (which is also the reason they are commonly used in experiments!). However, these findings show that there are very intricate differences between 
+male and female mice, so when making assumptions from research done on mice, the potential effects and implications of the clear biological differences between male and female mice cannot be ignored.
+Additionally, mice, unlike humans, are nocturnal. This is why their activity levels are significantly lower during the day/light time. 
+
+<h3 style="margin-bottom:0;"> Design Rationale</h3>
+Line graphs were the best graphical choice as we plotted over time, and it made it possible for the viewer to see the intracies of each time frame when they zoomed in.  
+
+We chose default colors of red and blue as blue is commonly associated with males, so its direct opposite would be red/female mice, plus decent colors to overlap one another.
+The light-dark cycle was meant to be in the background, so we used greys/whites to not be too distracting from the main data (of the mice). The estrus period similarly was made darker than the light/dark cycle to be distinct but also not extremely distracting. 
+This is also because of the ability to zoom-in and out of our data, which would make any of the light/dark marks the background. 
+ 
+<h3 style="margin:0;">Design Process</h3>
+Dylan and Sahana helped with the initial exploratory data analysis, graphing and seeing the patterns between body temperature & light and day activity between all mice and estrus in female mice. 
+Dylan then created an more in-depth and cleaned up idea of what we wanted to show in the final graphs. Once the initial idea was discussed as a group and set up, which didn't take too long because of our initial EDA, Ethan worked on the base of the D3 graph. Akshay implemented the interactivity with the gender switches and ability to see within smaller spans of time in our graphs. 
+</p>
 
   <script>
 // JavaScript START
